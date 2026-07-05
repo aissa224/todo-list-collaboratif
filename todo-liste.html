@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Carnet de tâches</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper: #f3f1ea;
+    --paper-line: #dcd7c8;
+    --ink: #2a2f36;
+    --ink-soft: #6b6f66;
+    --teal: #2f6f62;
+    --teal-dark: #204a41;
+    --mustard: #d9a441;
+  }
+
+  *{ box-sizing: border-box; }
+
+  body{
+    margin:0;
+    padding: 48px 20px;
+    background: var(--paper);
+    background-image:
+      linear-gradient(var(--paper-line) 1px, transparent 1px);
+    background-size: 100% 38px;
+    font-family: 'Inter', sans-serif;
+    color: var(--ink);
+    display:flex;
+    justify-content:center;
+  }
+
+  .carnet{
+    width: 100%;
+    max-width: 560px;
+  }
+
+  header{
+    margin-bottom: 28px;
+    border-bottom: 2px solid var(--ink);
+    padding-bottom: 14px;
+  }
+
+  h1{
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 2.1rem;
+    margin: 0 0 4px 0;
+    letter-spacing: -0.01em;
+  }
+
+  .sous-titre{
+    color: var(--ink-soft);
+    font-size: 0.92rem;
+    margin:0;
+  }
+
+  #formulaire{
+    display:flex;
+    gap: 10px;
+    margin-bottom: 26px;
+  }
+
+  input[type="text"]{
+    flex:1;
+    padding: 12px 14px;
+    font-family:'Inter', sans-serif;
+    font-size: 0.98rem;
+    border: 2px solid var(--ink);
+    border-radius: 4px;
+    background: #fff;
+    color: var(--ink);
+  }
+
+  input[type="text"]:focus{
+    outline: 3px solid var(--mustard);
+    outline-offset: 1px;
+  }
+
+  #bouton-ajouter{
+    padding: 12px 20px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 0.95rem;
+    background: var(--teal);
+    color: #fff;
+    border: 2px solid var(--teal);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.15s ease, transform 0.05s ease;
+  }
+
+  #bouton-ajouter:hover{ background: var(--teal-dark); border-color: var(--teal-dark); }
+  #bouton-ajouter:active{ transform: translateY(1px); }
+  #bouton-ajouter:focus-visible{ outline: 3px solid var(--mustard); outline-offset: 2px; }
+
+  ul{
+    list-style:none;
+    margin:0;
+    padding:0;
+  }
+
+  li{
+    display:flex;
+    align-items:flex-start;
+    gap: 12px;
+    padding: 10px 4px;
+    border-bottom: 1px solid var(--paper-line);
+    animation: apparition 0.25s ease;
+  }
+
+  @keyframes apparition{
+    from{ opacity:0; transform: translateY(-4px); }
+    to{ opacity:1; transform: translateY(0); }
+  }
+
+  .case{
+    flex-shrink:0;
+    width: 22px;
+    height: 22px;
+    margin-top: 2px;
+    border: 2px solid var(--ink);
+    border-radius: 50%;
+    background: #fff;
+    cursor:pointer;
+    position:relative;
+  }
+
+  .case.coche{
+    background: var(--teal);
+    border-color: var(--teal);
+  }
+
+  .case.coche::after{
+    content:"";
+    position:absolute;
+    left: 6px;
+    top: 2px;
+    width: 6px;
+    height: 10px;
+    border: solid #fff;
+    border-width: 0 2px 2px 0;
+    transform: rotate(40deg);
+  }
+
+  .texte{
+    flex:1;
+    font-size: 1rem;
+    line-height: 1.4;
+    word-break: break-word;
+  }
+
+  .texte.coche{
+    text-decoration: line-through;
+    color: var(--ink-soft);
+  }
+
+  .supprimer{
+    flex-shrink:0;
+    background:none;
+    border:none;
+    color: var(--ink-soft);
+    font-size: 1.1rem;
+    cursor:pointer;
+    padding: 0 4px;
+    line-height:1;
+  }
+
+  .supprimer:hover{ color: #b5442e; }
+  .supprimer:focus-visible{ outline: 2px solid var(--mustard); }
+
+  .vide{
+    color: var(--ink-soft);
+    font-style: italic;
+    font-size: 0.95rem;
+    padding: 20px 4px;
+    text-align:center;
+  }
+
+  .compteur{
+    margin-top: 18px;
+    font-size: 0.85rem;
+    color: var(--ink-soft);
+    text-align:right;
+  }
+</style>
+</head>
+<body>
+
+<div class="carnet">
+  <header>
+    <h1>Mon carnet de tâches</h1>
+    <p class="sous-titre">Écris une tâche, appuie sur Entrée ou clique sur Ajouter.</p>
+  </header>
+
+  <div id="formulaire">
+    <input type="text" id="champ-tache" placeholder="Ex. Appeler le plombier" autocomplete="off">
+    <button type="button" id="bouton-ajouter">Ajouter</button>
+  </div>
+
+  <ul id="liste-taches"></ul>
+  <p class="vide" id="message-vide">Aucune tâche pour l'instant. Profite du calme.</p>
+  <p class="compteur" id="compteur"></p>
+</div>
+
+<script>
+  const boutonAjouter = document.getElementById('bouton-ajouter');
+  const champ = document.getElementById('champ-tache');
+  const liste = document.getElementById('liste-taches');
+  const messageVide = document.getElementById('message-vide');
+  const compteur = document.getElementById('compteur');
+
+  let taches = [];
+  let prochainId = 1;
+
+  function majAffichage(){
+    liste.innerHTML = '';
+
+    if (taches.length === 0){
+      messageVide.style.display = 'block';
+    } else {
+      messageVide.style.display = 'none';
+    }
+
+    taches.forEach(function(tache){
+      const li = document.createElement('li');
+
+      const case_ = document.createElement('button');
+      case_.className = 'case' + (tache.faite ? ' coche' : '');
+      case_.setAttribute('aria-label', tache.faite ? 'Marquer comme non faite' : 'Marquer comme faite');
+      case_.addEventListener('click', function(){
+        tache.faite = !tache.faite;
+        majAffichage();
+      });
+
+      const texte = document.createElement('span');
+      texte.className = 'texte' + (tache.faite ? ' coche' : '');
+      texte.textContent = tache.texte;
+
+      const supprimer = document.createElement('button');
+      supprimer.className = 'supprimer';
+      supprimer.setAttribute('aria-label', 'Supprimer la tâche');
+      supprimer.textContent = '✕';
+      supprimer.addEventListener('click', function(){
+        taches = taches.filter(function(t){ return t.id !== tache.id; });
+        majAffichage();
+      });
+
+      li.appendChild(case_);
+      li.appendChild(texte);
+      li.appendChild(supprimer);
+      liste.appendChild(li);
+    });
+
+    const nbRestantes = taches.filter(function(t){ return !t.faite; }).length;
+    compteur.textContent = taches.length === 0
+      ? ''
+      : nbRestantes + ' tâche' + (nbRestantes !== 1 ? 's' : '') + ' restante' + (nbRestantes !== 1 ? 's' : '');
+  }
+
+  function ajouterTache(){
+    const valeur = champ.value.trim();
+    if (valeur === '') return;
+
+    taches.push({ id: prochainId++, texte: valeur, faite: false });
+    champ.value = '';
+    champ.focus();
+    majAffichage();
+  }
+
+  boutonAjouter.addEventListener('click', ajouterTache);
+
+  champ.addEventListener('keydown', function(evenement){
+    if (evenement.key === 'Enter'){
+      evenement.preventDefault();
+      ajouterTache();
+    }
+  });
+
+  majAffichage();
+</script>
+
+</body>
+</html>
