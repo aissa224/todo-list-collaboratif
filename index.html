@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ma To-Do List - Filtres et Stats</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            width: 350px;
+        }
+        .filters {
+            margin: 15px 0;
+            display: flex;
+            gap: 10px;
+        }
+        .filters button {
+            flex: 1;
+            padding: 5px;
+            cursor: pointer;
+            border: 1px solid #ccc;
+            background: #fff;
+            border-radius: 4px;
+        }
+        .filters button.active {
+            background: #0052cc;
+            color: white;
+            border-color: #0052cc;
+        }
+        .stats {
+            font-size: 0.9em;
+            color: #666;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+        li {
+            padding: 10px;
+            background: #f9f9f9;
+            margin-bottom: 8px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        li.completed span {
+            text-decoration: line-through;
+            color: #aaa;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Ma To-Do List</h2>
+
+    <div class="stats" id="counter">0 tâche restante</div>
+
+    <div class="filters">
+        <button id="btn-all" class="active" onclick="changerFiltre('toutes')">Toutes</button>
+        <button id="btn-todo" onclick="changerFiltre('a-faire')">À faire</button>
+        <button id="btn-done" onclick="changerFiltre('faites')">Faites</button>
+    </div>
+
+    <ul id="task-list"></ul>
+</div>
+
+<script>
+    // Exemple de données de départ (générées par ton groupe)
+    let listeTaches = [
+        { id: 1, texte: "Acheter le pain", complete: false },
+        { id: 2, texte: "Coder le projet Jira", complete: true },
+        { id: 3, texte: "Nourrir le chat", complete: false },
+        { id: 4, texte: "Faire du sport", complete: false }
+    ];
+
+    // Variable pour stocker le filtre actuellement sélectionné
+    let filtreActuel = 'toutes'; 
+
+    // --- LOGIQUE DU COMPTEUR (Ton ticket) ---
+    function mettreAJourCompteur() {
+        // On filtre pour ne garder que les tâches qui ne sont PAS complètes
+        const restantes = listeTaches.filter(tache => !tache.complete).length;
+        
+        const declinaison = restantes > 1 ? "tâches restantes" : "tâche restante";
+        document.getElementById("counter").innerText = `${restantes} ${declinaison}`;
+    }
+
+    // --- LOGIQUE DU FILTRE (Ton ticket) ---
+    function changerFiltre(nouveauFiltre) {
+        filtreActuel = nouveauFiltre;
+        
+        // Gérer le style visuel des boutons de filtre
+        document.getElementById('btn-all').classList.remove('active');
+        document.getElementById('btn-todo').classList.remove('active');
+        document.getElementById('btn-done').classList.remove('active');
+        
+        if(nouveauFiltre === 'toutes') document.getElementById('btn-all').classList.add('active');
+        if(nouveauFiltre === 'a-faire') document.getElementById('btn-todo').classList.add('active');
+        if(nouveauFiltre === 'faites') document.getElementById('btn-done').classList.add('active');
+
+        // Re-rendre la liste avec le nouveau filtre appliqué
+        afficherTaches();
+    }
+
+    // Fonction pour inverser le statut d'une tâche quand on la coche
+    function basculerStatut(id) {
+        listeTaches = listeTaches.map(tache => {
+            if (tache.id === id) {
+                return { ...tache, complete: !tache.complete };
+            }
+            return tache;
+        });
+        
+        // On met à jour l'affichage et le compteur
+        mettreAJourCompteur();
+        afficherTaches();
+    }
+
+    // Fonction principale d'affichage de la liste
+    function afficherTaches() {
+        const ul = document.getElementById("task-list");
+        ul.innerHTML = ""; // On vide la liste visuelle avant de la reconstruire
+
+        listeTaches.forEach(tache => {
+            // Condition de filtrage
+            if (filtreActuel === 'a-faire' && tache.complete) return;
+            if (filtreActuel === 'faites' && !tache.complete) return;
+
+            // Création de l'élément HTML pour la tâche
+            const li = document.createElement("li");
+            if (tache.complete) li.classList.add("completed");
+
+            li.innerHTML = `
+                <input type="checkbox" ${tache.complete ? "checked" : ""} onchange="basculerStatut(${tache.id})">
+                <span>${tache.texte}</span>
+            `;
+            ul.appendChild(li);
+        });
+    }
+
+    // Initialisation au chargement de la page
+    mettreAJourCompteur();
+    afficherTaches();
+</script>
+
+</body>
+</html>
